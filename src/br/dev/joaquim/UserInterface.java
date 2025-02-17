@@ -2,8 +2,8 @@ package br.dev.joaquim;
 
 import java.util.Random;
 import java.util.Scanner;
-
 import br.dev.joaquim.bank.BankAccount;
+import br.dev.joaquim.bank.InsufficientFundsException;
 
 public class UserInterface {
     private Scanner input = new Scanner(System.in);
@@ -11,7 +11,7 @@ public class UserInterface {
 
     private void welcome() {
         System.out.println("Bem-vindo ao sistema bancário");
-        System.out.print("Vamos criar usa conta, informe seu nome: ");
+        System.out.print("Vamos criar sua conta, informe seu nome: ");
         String holderName = input.nextLine();
         int accountNumber = 1000 + (new Random()).nextInt(8999);
         System.out.println("Criamos uma conta com o número: " + accountNumber + ", com saldo igual a 0 (zero).");
@@ -25,7 +25,7 @@ public class UserInterface {
         System.out.println("\t2. Depositar.");
         System.out.println("\t3. Sacar.");
         System.out.println("\t4. Sair.");
-        System.out.print("opção > ");
+        System.out.print("Opção > ");
     }
 
     public void start() {
@@ -37,6 +37,12 @@ public class UserInterface {
             showMenu();
             try {
                 int choice = readOption();
+                
+                // Verificação para ver se a opção está dentro do intervalo desejado
+                if (choice < 1 || choice > 4) {
+                    System.out.println("Opção inválida. Escolha um número entre 1 e 4.");
+                    continue; 
+                }
                 switch (choice) {
                     case 1:
                         System.out.println("\n" + this.account);
@@ -45,14 +51,11 @@ public class UserInterface {
                         deposit();
                         break;
                     case 3:
-                        withdraw(); // pode dar problema
+                        withdraw();
                         break;
                     case 4:
                         System.out.println("Até a próxima.");
                         return;
-                    default:
-                        System.out.println("Opção inválida");
-                        break;
                 }
                 waitUser();
             } catch (NumberFormatException ex) {
@@ -65,14 +68,22 @@ public class UserInterface {
         System.out.print("\nInforme o valor a ser depositado: ");
         double value = readValue();
         account.deposit(value);
-        System.out.println("Desposito realizado com sucesso.");
+        System.out.println("Depósito realizado com sucesso.");
     }
-
+    
+    /**
+     * Solicita ao usuário o valor a ser sacado e tenta realizar o saque.
+     * Se o saldo for insuficiente, exibe uma mensagem de erro.
+     */
     private void withdraw() {
         System.out.print("\nInforme o valor a ser sacado: ");
         double value = readValue();
-        account.withdraw(value); // pode dar problema
-        System.out.println("Saque realizado com sucesso");
+        try {
+            account.withdraw(value);
+            System.out.println("Saque realizado com sucesso");
+        } catch (InsufficientFundsException e) {
+            System.out.println("Erro: Não há saldo suficiente para o saque de: " + value + " Reais");
+        }
     }
 
     private int readOption() {
@@ -86,7 +97,7 @@ public class UserInterface {
     }
 
     private void waitUser() {
-        System.out.println("pressione ENTER para continuar...");
+        System.out.println("Pressione ENTER para continuar...");
         input.nextLine();
     }
 }
